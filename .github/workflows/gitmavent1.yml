@@ -19,8 +19,6 @@ jobs:
       - name: Clone repository
         run: |
           git clone https://github.com/taylor-training/time-tracker.git
-          cd time-tracker
-          ls -l
 
       
       - name: Set up JDK 17
@@ -28,9 +26,11 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: maven
 
       
       - name: Build with Maven
         run: |
+          cd time-tracker
           mvn -B -DskipTests clean package
           rm -rf time-tracker
