@@ -1,34 +1,25 @@
-name: Backup Jenkins Jobs
+name: Backup Repository
 
 on:
+  workflow_dispatch:
   schedule:
-    - cron: "0 * * * *"   
-  workflow_dispatch:      
+    - cron: "*/2 * * * *"   
 
 jobs:
   backup:
     runs-on: ubuntu-latest
-    env:
-      JENKINS_JOBS_DIR: /var/lib/jenkins/jobs
-      BACKUP_DIR: /var/backups/jenkins_jobs
-      DATE: ${{ github.run_id }}-${{ github.run_number }}
-      BACKUP_FILE: jenkins_jobs_backup_${{ github.run_id }}.tar.gz
+
     steps:
-      - name: Create backup directory
-        run: sudo mkdir -p $BACKUP_DIR
-
-      - name: Backup Jenkins jobs
+      
+      - name: Checkout repository
+        uses: actions/checkout@v4
+     
+      - name: Create backup archive
         run: |
-          sudo tar -czf $BACKUP_DIR/$BACKUP_FILE -C $JENKINS_JOBS_DIR .
-
-      - name: Cleanup old backups (older than 7 days)
+          mkdir -p backup
+          tar -czf backup/time-tracker-$(date +%F-%H%M).tar.gz .
+      
+      - name: Cleanup Workspace
+        if: always()
         run: |
-          sudo find $BACKUP_DIR -type f -name "jenkins_jobs_backup_*.tar.gz" -mtime +7 -exec rm -f {} \;
-
-      - name: Success message
-        if: success()
-        run: echo "successful"
-
-      - name: Failure message
-        if: failure()
-        run: echo "failed"
+          echo "Backup workflow finished."
