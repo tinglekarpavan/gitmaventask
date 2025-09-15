@@ -1,0 +1,35 @@
+name: Build and Run Nginx Docker
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: my-nginx:latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Generate Dockerfile
+        run: |
+          cat <<EOF > Dockerfile
+          FROM nginx:latest
+          EXPOSE 80
+          CMD ["nginx", "-g", "daemon off;"]
+          EOF
+
+      - name: Build Docker Image
+        run: docker build -t $IMAGE_NAME .
+
+      - name: Run Container
+        run: |
+          docker rm -f nginx_test || true
+          docker run -d --name nginx_test $IMAGE_NAME
+
+      - name: Verify Container is running
+        run: docker ps | grep nginx_test
